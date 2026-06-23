@@ -1,0 +1,424 @@
+{
+  "info": {
+    "name": "Booking API",
+    "description": "Коллекция API онлайн-букинга — все эндпоинты с тестами",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{ACCESS_TOKEN}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newuser@test.com\",\n  \"password\": \"password123\",\n  \"name\": \"Test User\"\n}"
+            },
+            "url": { "raw": "{{BASE_URL}}/api/auth/register", "host": ["{{BASE_URL}}"], "path": ["api", "auth", "register"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Status 201', () => pm.expect(pm.response.code).to.equal(201));",
+                "const json = pm.response.json();",
+                "pm.test('Has accessToken', () => pm.expect(json.accessToken).to.be.a('string'));",
+                "if (json.accessToken) { pm.environment.set('ACCESS_TOKEN', json.accessToken); }",
+                "if (json.refreshToken) { pm.environment.set('REFRESH_TOKEN', json.refreshToken); }",
+                "if (json.user) { pm.environment.set('USER_ID', json.user.id); }"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "Login (admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@booking.com\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": { "raw": "{{BASE_URL}}/api/auth/login", "host": ["{{BASE_URL}}"], "path": ["api", "auth", "login"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Status 200', () => pm.expect(pm.response.code).to.equal(200));",
+                "const json = pm.response.json();",
+                "pm.test('Has accessToken', () => pm.expect(json.accessToken).to.be.a('string'));",
+                "if (json.accessToken) { pm.environment.set('ACCESS_TOKEN', json.accessToken); }",
+                "if (json.refreshToken) { pm.environment.set('REFRESH_TOKEN', json.refreshToken); }",
+                "if (json.user) { pm.environment.set('USER_ID', json.user.id); }"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "Login (user)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user1@booking.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": { "raw": "{{BASE_URL}}/api/auth/login", "host": ["{{BASE_URL}}"], "path": ["api", "auth", "login"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Status 200', () => pm.expect(pm.response.code).to.equal(200));",
+                "const json = pm.response.json();",
+                "if (json.accessToken) { pm.environment.set('ACCESS_TOKEN', json.accessToken); }",
+                "if (json.user) { pm.environment.set('USER_ID', json.user.id); }"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{REFRESH_TOKEN}}\"\n}"
+            },
+            "url": { "raw": "{{BASE_URL}}/api/auth/refresh", "host": ["{{BASE_URL}}"], "path": ["api", "auth", "refresh"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Status 200', () => pm.expect(pm.response.code).to.equal(200));",
+                "const json = pm.response.json();",
+                "if (json.accessToken) { pm.environment.set('ACCESS_TOKEN', json.accessToken); }"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{BASE_URL}}/api/auth/logout", "host": ["{{BASE_URL}}"], "path": ["api", "auth", "logout"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": ["pm.test('Status 200', () => pm.expect(pm.response.code).to.equal(200));"] }
+          }]
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get All Users (admin)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{BASE_URL}}/api/users?page=1&pageSize=10", "host": ["{{BASE_URL}}"], "path": ["api", "users"], "query": [{ "key": "page", "value": "1" }, { "key": "pageSize", "value": "10" }] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": ["pm.test('Status 200', () => pm.expect(pm.response.code).to.equal(200));", "pm.test('Is array', () => pm.expect(pm.response.json().data).to.be.an('array'));"] }
+          }]
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{BASE_URL}}/api/users/{{USER_ID}}", "host": ["{{BASE_URL}}"], "path": ["api", "users", "{{USER_ID}}"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": ["pm.test('Status 200', () => pm.expect(pm.response.code).to.equal(200));", "pm.test('Has id', () => pm.expect(pm.response.json().id).to.be.a('string'));"] }
+          }]
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Updated Name\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/users/{{USER_ID}}", "host": ["{{BASE_URL}}"], "path": ["api", "users", "{{USER_ID}}"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": ["pm.test('Status 200', () => pm.expect(pm.response.code).to.equal(200));"] }
+          }]
+        }
+      ]
+    },
+    {
+      "name": "Listings",
+      "item": [
+        {
+          "name": "Get All Listings",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{BASE_URL}}/api/listings?page=1&pageSize=10", "host": ["{{BASE_URL}}"], "path": ["api", "listings"], "query": [{ "key": "page", "value": "1" }, { "key": "pageSize", "value": "10" }] },
+            "auth": { "type": "noauth" }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": ["pm.test('Status 200', () => pm.expect(pm.response.code).to.equal(200));", "pm.test('Has data array', () => pm.expect(pm.response.json().data).to.be.an('array'));"] }
+          }]
+        },
+        {
+          "name": "Get Listing by ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{BASE_URL}}/api/listings/{{LISTING_ID}}", "host": ["{{BASE_URL}}"], "path": ["api", "listings", "{{LISTING_ID}}"] },
+            "auth": { "type": "noauth" }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": ["pm.test('Status 200', () => pm.expect(pm.response.code).to.equal(200));", "pm.test('Has title', () => pm.expect(pm.response.json().title).to.be.a('string'));"] }
+          }]
+        },
+        {
+          "name": "Create Listing",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Test Listing\",\n  \"description\": \"A test listing\",\n  \"price\": 100,\n  \"categoryId\": \"{{CATEGORY_ID}}\"\n}"
+            },
+            "url": { "raw": "{{BASE_URL}}/api/listings", "host": ["{{BASE_URL}}"], "path": ["api", "listings"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Status 201', () => pm.expect(pm.response.code).to.equal(201));",
+                "const json = pm.response.json();",
+                "if (json.id) { pm.environment.set('LISTING_ID', json.id); }"
+              ]
+            }
+          }]
+        }
+      ]
+    },
+    {
+      "name": "Bookings",
+      "item": [
+        {
+          "name": "Get My Bookings",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{BASE_URL}}/api/bookings", "host": ["{{BASE_URL}}"], "path": ["api", "bookings"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": ["pm.test('Status 200', () => pm.expect(pm.response.code).to.equal(200));"] }
+          }]
+        },
+        {
+          "name": "Create Booking",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"listingId\": \"{{LISTING_ID}}\",\n  \"dateFrom\": \"2025-03-01\",\n  \"dateTo\": \"2025-03-05\"\n}"
+            },
+            "url": { "raw": "{{BASE_URL}}/api/bookings", "host": ["{{BASE_URL}}"], "path": ["api", "bookings"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Status 201', () => pm.expect(pm.response.code).to.equal(201));",
+                "const json = pm.response.json();",
+                "if (json.id) { pm.environment.set('BOOKING_ID', json.id); }"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "Cancel Booking",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{BASE_URL}}/api/bookings/{{BOOKING_ID}}", "host": ["{{BASE_URL}}"], "path": ["api", "bookings", "{{BOOKING_ID}}"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": ["pm.test('Status 200', () => pm.expect(pm.response.code).to.equal(200));"] }
+          }]
+        }
+      ]
+    },
+    {
+      "name": "Categories",
+      "item": [
+        {
+          "name": "Get All Categories",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{BASE_URL}}/api/categories", "host": ["{{BASE_URL}}"], "path": ["api", "categories"] },
+            "auth": { "type": "noauth" }
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Status 200', () => pm.expect(pm.response.code).to.equal(200));",
+                "const json = pm.response.json();",
+                "if (Array.isArray(json) && json.length > 0) { pm.environment.set('CATEGORY_ID', json[0].id); }"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "Create Category (admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Test Category\",\n  \"icon\": \"🏨\",\n  \"slug\": \"test-category\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/categories", "host": ["{{BASE_URL}}"], "path": ["api", "categories"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": ["pm.test('Status 201', () => pm.expect(pm.response.code).to.equal(201));"] }
+          }]
+        }
+      ]
+    },
+    {
+      "name": "Reviews",
+      "item": [
+        {
+          "name": "Get Reviews by Listing",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{BASE_URL}}/api/reviews?listingId={{LISTING_ID}}", "host": ["{{BASE_URL}}"], "path": ["api", "reviews"], "query": [{ "key": "listingId", "value": "{{LISTING_ID}}" }] },
+            "auth": { "type": "noauth" }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": ["pm.test('Status 200', () => pm.expect(pm.response.code).to.equal(200));"] }
+          }]
+        },
+        {
+          "name": "Create Review",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"listingId\": \"{{LISTING_ID}}\",\n  \"rating\": 5,\n  \"comment\": \"Отличное место!\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/reviews", "host": ["{{BASE_URL}}"], "path": ["api", "reviews"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": ["pm.test('Status 201', () => pm.expect(pm.response.code).to.equal(201));"] }
+          }]
+        }
+      ]
+    },
+    {
+      "name": "Payments",
+      "item": [
+        {
+          "name": "Create Payment",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"bookingId\": \"{{BOOKING_ID}}\",\n  \"method\": \"CARD\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/payments", "host": ["{{BASE_URL}}"], "path": ["api", "payments"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Status 201', () => pm.expect(pm.response.code).to.equal(201));",
+                "const json = pm.response.json();",
+                "if (json.id) { pm.environment.set('PAYMENT_ID', json.id); }"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "Update Payment Status (admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"COMPLETED\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/payments/{{PAYMENT_ID}}/status", "host": ["{{BASE_URL}}"], "path": ["api", "payments", "{{PAYMENT_ID}}", "status"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": ["pm.test('Status 200', () => pm.expect(pm.response.code).to.equal(200));"] }
+          }]
+        }
+      ]
+    },
+    {
+      "name": "Amenities",
+      "item": [
+        {
+          "name": "Get All Amenities",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{BASE_URL}}/api/amenities", "host": ["{{BASE_URL}}"], "path": ["api", "amenities"] },
+            "auth": { "type": "noauth" }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": ["pm.test('Status 200', () => pm.expect(pm.response.code).to.equal(200));"] }
+          }]
+        },
+        {
+          "name": "Create Amenity (admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Бассейн\",\n  \"icon\": \"🏊\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/amenities", "host": ["{{BASE_URL}}"], "path": ["api", "amenities"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": ["pm.test('Status 201', () => pm.expect(pm.response.code).to.equal(201));"] }
+          }]
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Get My Notifications",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{BASE_URL}}/api/notifications", "host": ["{{BASE_URL}}"], "path": ["api", "notifications"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": ["pm.test('Status 200', () => pm.expect(pm.response.code).to.equal(200));"] }
+          }]
+        },
+        {
+          "name": "Mark All as Read",
+          "request": {
+            "method": "PATCH",
+            "url": { "raw": "{{BASE_URL}}/api/notifications/read-all", "host": ["{{BASE_URL}}"], "path": ["api", "notifications", "read-all"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": ["pm.test('Status 200', () => pm.expect(pm.response.code).to.equal(200));"] }
+          }]
+        }
+      ]
+    }
+  ]
+}
