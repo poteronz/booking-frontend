@@ -123,9 +123,9 @@ npm run test:watch     # watch-режим
 
 | Роль | Участник | Зона ответственности |
 |------|----------|---------------------|
-| **Frontend Developer** | Илья Чапчахов | React, TypeScript, FSD, Tailwind UI-kit, Zustand, интеграция с API, деплой Vercel |
-| **Backend Developer** | Илья Чапчахов | Express, Prisma, PostgreSQL, JWT, Zod, Swagger, деплой Railway |
-| **QA Engineer** | Илья Чапчахов | Vitest тесты, Supertest, Postman-коллекция, CI/CD, покрытие 70%+ |
+| **Frontend Developer** | Пётр Чапчахов | React, TypeScript, FSD, Tailwind UI-kit, Zustand, интеграция с API, деплой Vercel |
+| **Backend Developer** | Пётр Чапчахов | Express, Prisma, PostgreSQL, JWT, Zod, Swagger, деплой Railway |
+| **QA Engineer** | Пётр Чапчахов | Vitest тесты, Supertest, Postman-коллекция, CI/CD, покрытие 70%+ |
 
 ## Git Workflow
 
