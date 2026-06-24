@@ -7,7 +7,6 @@ import { useSearchFilter } from '@/features/search-filter';
 import { useListingStore } from '@/app/store/listingStore';
 import { categoryApi } from '@/entities/category';
 import type { Category } from '@/entities/category';
-import { Card } from '@/shared/ui';
 import { formatPrice } from '@/shared/lib/formatPrice';
 import { ROUTES } from '@/shared/config/routes';
 
