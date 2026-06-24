@@ -1,6 +1,25 @@
-# BookIt — Онлайн-платформа бронирования
+# 🏨 BookIt — Онлайн-платформа бронирования
 
-Полнофункциональная платформа для бронирования объектов (жилья, залов, услуг). Пользователи могут просматривать каталог объектов, бронировать, оставлять отзывы и оплачивать. Владельцы (OWNER) управляют своими объектами. Администраторы контролируют систему через админ-панель.
+> Полнофункциональная платформа для бронирования жилья. Пользователи просматривают каталог, бронируют и оставляют отзывы. Владельцы управляют объявлениями. Администраторы контролируют систему через админ-панель.
+
+![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white)
+![React](https://img.shields.io/badge/React-18.3-61DAFB?logo=react&logoColor=black)
+![Express](https://img.shields.io/badge/Express-4.x-000000?logo=express&logoColor=white)
+![Prisma](https://img.shields.io/badge/Prisma-5.x-2D3748?logo=prisma&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-4169E1?logo=postgresql&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-5.x-646CFF?logo=vite&logoColor=white)
+
+## Функциональность
+
+- **Каталог объектов** — просмотр, фильтрация по категориям и городам, поиск
+- **Бронирование** — выбор дат, расчёт стоимости, проверка конфликтов
+- **Отзывы и рейтинги** — оценка объектов после проживания
+- **Уведомления** — уведомления о бронированиях, отзывах, системные
+- **Личный кабинет** — управление бронированиями, профилем
+- **Панель владельца** — создание и управление объявлениями
+- **Админ-панель** — управление пользователями, объявлениями, категориями
+- **Авторизация** — JWT (access + refresh), ролевая модель (USER / OWNER / ADMIN)
+- **Оплата** — интеграция платёжной системы
 
 ## Стек технологий
 
@@ -141,6 +160,33 @@ feat: добавить BookingForm
 fix: исправить конфликт дат
 docs: обновить README
 test: покрыть authService
+```
+
+## Структура проекта
+
+```
+booking-frontend/
+├── backend/                 # Express + Prisma API
+│   ├── prisma/              # Схема БД, миграции, seed
+│   ├── src/
+│   │   ├── routes/          # HTTP маршруты
+│   │   ├── services/        # Бизнес-логика
+│   │   ├── repositories/    # Работа с БД (Prisma)
+│   │   ├── schemas/         # Zod-валидация
+│   │   ├── middleware/      # Auth, error handler
+│   │   └── tests/           # Vitest + Supertest
+│   └── package.json
+├── frontend/                # React + Vite SPA
+│   ├── src/
+│   │   ├── app/             # FSD: провайдеры, роутер, стор
+│   │   ├── pages/           # FSD: страницы
+│   │   ├── widgets/         # FSD: виджеты (Header, BookingList)
+│   │   ├── features/        # FSD: фичи (auth, admin-panel)
+│   │   ├── entities/        # FSD: сущности (user, listing, booking)
+│   │   └── shared/          # FSD: UI-kit, API, утилиты
+│   └── package.json
+├── .github/workflows/       # CI/CD (GitHub Actions)
+└── README.md
 ```
 
 ## Лицензия
