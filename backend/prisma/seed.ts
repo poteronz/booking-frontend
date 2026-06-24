@@ -217,7 +217,7 @@ async function main() {
   );
 
   console.log('Создание объявлений...');
-  const listings: Array<{ id: string; title: string; city?: string; address?: string }> = [];
+  const listings: Array<{ id: string; title: string; city: string | null; address: string | null; ownerId: string }> = [];
 
   for (const [index, listingSeed] of listingSeeds.entries()) {
     const owner = owners[index % owners.length];
