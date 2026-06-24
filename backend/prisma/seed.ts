@@ -351,6 +351,34 @@ async function main() {
     },
   });
 
+  // Приветственные уведомления для всех пользователей
+  const allUsers = [admin, ...owners, ...users];
+  for (const u of allUsers) {
+    await prisma.notification.create({
+      data: {
+        userId: u.id,
+        type: NotificationType.SYSTEM,
+        message: `Добро пожаловать в BookIt! Ваш аккаунт успешно создан.`,
+        isRead: false,
+      },
+    });
+  }
+
+  // Уведомления владельцам о созданных объявлениях
+  for (const owner of owners) {
+    const ownerListings = listings.filter((_, i) => owners[i % owners.length].id === owner.id);
+    if (ownerListings.length > 0) {
+      await prisma.notification.create({
+        data: {
+          userId: owner.id,
+          type: NotificationType.SYSTEM,
+          message: `У вас ${ownerListings.length} активных объявлений на платформе.`,
+          isRead: false,
+        },
+      });
+    }
+  }
+
   console.log('Seed завершён!');
 }
 

@@ -1,4 +1,6 @@
 import { reviewRepository } from '../repositories/review.repository';
+import { notificationRepository } from '../repositories/notification.repository';
+import { listingRepository } from '../repositories/listing.repository';
 
 export const reviewService = {
   getByListing: async (listingId: string) => {
@@ -14,12 +16,28 @@ export const reviewService = {
       throw { status: 409, message: 'Вы уже оставляли отзыв для этого объекта' };
     }
 
-    return reviewRepository.create({
+    const review = await reviewRepository.create({
       rating: data.rating,
       comment: data.comment ?? '',
       user: { connect: { id: userId } },
       listing: { connect: { id: data.listingId } },
     });
+
+    // Уведомление владельцу объявления о новом отзыве
+    try {
+      const listing = await listingRepository.findById(data.listingId);
+      if (listing && listing.ownerId !== userId) {
+        await notificationRepository.create({
+          message: `Новый отзыв на «${listing.title}»: оценка ${data.rating}/5.`,
+          type: 'NEW_REVIEW',
+          user: { connect: { id: listing.ownerId } },
+        });
+      }
+    } catch {
+      // уведомления не критичны
+    }
+
+    return review;
   },
 
   update: async (id: string, data: { rating?: number; comment?: string }, userId: string) => {

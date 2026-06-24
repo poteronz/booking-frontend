@@ -1,5 +1,6 @@
 import { bookingRepository } from '../repositories/booking.repository';
 import { listingRepository } from '../repositories/listing.repository';
+import { notificationRepository } from '../repositories/notification.repository';
 
 // сервис бронирований — бизнес-логика
 export const bookingService = {
@@ -57,6 +58,25 @@ export const bookingService = {
       listing: { connect: { id: dto.listingId } },
     });
 
+    // Создаём уведомление о новом бронировании
+    try {
+      await notificationRepository.create({
+        message: `Бронирование «${listing.title}» создано на ${dateFrom.toLocaleDateString('ru-RU')} – ${dateTo.toLocaleDateString('ru-RU')}. Сумма: ${totalPrice} ₽.`,
+        type: 'SYSTEM',
+        user: { connect: { id: userId } },
+      });
+      // Уведомление владельцу объявления
+      if (listing.ownerId !== userId) {
+        await notificationRepository.create({
+          message: `Новое бронирование на «${listing.title}» (${dateFrom.toLocaleDateString('ru-RU')} – ${dateTo.toLocaleDateString('ru-RU')}).`,
+          type: 'BOOKING_CONFIRMED',
+          user: { connect: { id: listing.ownerId } },
+        });
+      }
+    } catch {
+      // уведомления не критичны
+    }
+
     return booking;
   },
 
@@ -104,6 +124,20 @@ export const bookingService = {
       throw { status: 400, message: 'Бронирование уже отменено' };
     }
 
-    return bookingRepository.cancel(id);
+    const cancelled = await bookingRepository.cancel(id);
+
+    // Уведомление об отмене
+    try {
+      const listing = await listingRepository.findById(booking.listingId);
+      await notificationRepository.create({
+        message: `Бронирование «${listing?.title || 'объект'}» отменено.`,
+        type: 'BOOKING_CANCELLED',
+        user: { connect: { id: userId } },
+      });
+    } catch {
+      // уведомления не критичны
+    }
+
+    return cancelled;
   },
 };

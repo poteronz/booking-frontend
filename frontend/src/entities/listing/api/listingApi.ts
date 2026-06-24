@@ -17,7 +17,7 @@ export const listingApi = {
   update: (id: string, data: Partial<CreateListingDto>) =>
     api.patch<Listing>(`/listings/${id}`, data).then((r) => r.data),
 
-  deactivate: (id: string) => api.patch<Listing>(`/listings/${id}`, { isActive: false }).then((r) => r.data),
+  deactivate: (id: string) => api.delete<Listing>(`/listings/${id}`).then((r) => r.data),
 
   getMy: () => api.get<Listing[]>('/listings/my').then((r) => r.data),
 };

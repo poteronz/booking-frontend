@@ -20,4 +20,5 @@ export const updateListingSchema = z.object({
   price: z.number().positive().optional(),
   categoryId: z.string().uuid().optional(),
   amenityIds: z.array(z.string().uuid()).optional(),
+  isActive: z.boolean().optional(),
 });

@@ -3,9 +3,11 @@ import { Header } from '@/widgets/Header';
 import { BookingList } from '@/widgets/BookingList';
 import { NotificationBell } from '@/widgets/NotificationBell';
 import { useAuthStore } from '@/app/store/authStore';
-import { Spinner } from '@/shared/ui';
+import { Button, Input, Spinner } from '@/shared/ui';
 import { listingApi, ListingCard } from '@/entities/listing';
+import { categoryApi } from '@/entities/category';
 import type { Listing } from '@/entities/listing';
+import type { Category } from '@/entities/category';
 import { cn } from '@/shared/lib/cn';
 
 type Tab = 'bookings' | 'notifications' | 'listings';
@@ -21,19 +23,59 @@ export function ProfilePage() {
   const [activeTab, setActiveTab] = useState<Tab>('bookings');
   const [myListings, setMyListings] = useState<Listing[]>([]);
   const [listingsLoading, setListingsLoading] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [createForm, setCreateForm] = useState({
+    title: '', description: '', price: '', city: '', address: '', imageUrl: '', categoryId: '',
+  });
+  const [createError, setCreateError] = useState('');
+  const [creating, setCreating] = useState(false);
 
   const isOwner = user?.role === 'OWNER';
 
+  const loadMyListings = () => {
+    setListingsLoading(true);
+    listingApi
+      .getMy()
+      .then(setMyListings)
+      .catch(() => {})
+      .finally(() => setListingsLoading(false));
+  };
+
   useEffect(() => {
     if (isOwner && activeTab === 'listings') {
-      setListingsLoading(true);
-      listingApi
-        .getMy()
-        .then(setMyListings)
-        .catch(() => {})
-        .finally(() => setListingsLoading(false));
+      loadMyListings();
+      categoryApi.getAll().then(setCategories).catch(() => {});
     }
   }, [isOwner, activeTab]);
+
+  const handleCreateListing = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreateError('');
+    if (!createForm.title || !createForm.description || !createForm.price || !createForm.categoryId) {
+      setCreateError('Заполните все обязательные поля');
+      return;
+    }
+    setCreating(true);
+    try {
+      await listingApi.create({
+        title: createForm.title,
+        description: createForm.description,
+        price: Number(createForm.price),
+        categoryId: createForm.categoryId,
+        city: createForm.city || undefined,
+        address: createForm.address || undefined,
+        imageUrl: createForm.imageUrl || undefined,
+      });
+      setCreateForm({ title: '', description: '', price: '', city: '', address: '', imageUrl: '', categoryId: '' });
+      setShowCreateForm(false);
+      loadMyListings();
+    } catch (err: any) {
+      setCreateError(err?.response?.data?.message || 'Ошибка при создании');
+    } finally {
+      setCreating(false);
+    }
+  };
 
   const tabs: { key: Tab; label: string; icon: string; show: boolean }[] = [
     { key: 'bookings', label: 'Мои бронирования', icon: '📋', show: true },
@@ -104,15 +146,55 @@ export function ProfilePage() {
           )}
 
           {activeTab === 'listings' && isOwner && (
-            <div>
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-white">Мои объявления ({myListings.length})</h2>
+                <Button size="sm" onClick={() => setShowCreateForm(!showCreateForm)}>
+                  {showCreateForm ? 'Отмена' : '+ Создать объявление'}
+                </Button>
+              </div>
+
+              {showCreateForm && (
+                <form onSubmit={handleCreateListing} className="flex flex-col gap-3 p-4 rounded-2xl border border-border bg-surface-2">
+                  <h3 className="text-sm font-semibold text-white">Новое объявление</h3>
+                  {createError && <p className="text-sm text-destructive">{createError}</p>}
+                  <Input placeholder="Название *" value={createForm.title} onChange={(e) => setCreateForm(f => ({ ...f, title: e.target.value }))} />
+                  <textarea
+                    placeholder="Описание (мин. 10 символов) *"
+                    className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-sm text-white placeholder:text-muted focus:outline-none focus:border-primary"
+                    rows={3}
+                    value={createForm.description}
+                    onChange={(e) => setCreateForm(f => ({ ...f, description: e.target.value }))}
+                  />
+                  <div className="grid grid-cols-2 gap-3">
+                    <Input placeholder="Цена за сутки *" type="number" value={createForm.price} onChange={(e) => setCreateForm(f => ({ ...f, price: e.target.value }))} />
+                    <select
+                      className="bg-surface border border-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-primary"
+                      value={createForm.categoryId}
+                      onChange={(e) => setCreateForm(f => ({ ...f, categoryId: e.target.value }))}
+                    >
+                      <option value="">Категория *</option>
+                      {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
+                    </select>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Input placeholder="Город" value={createForm.city} onChange={(e) => setCreateForm(f => ({ ...f, city: e.target.value }))} />
+                    <Input placeholder="Адрес" value={createForm.address} onChange={(e) => setCreateForm(f => ({ ...f, address: e.target.value }))} />
+                  </div>
+                  <Input placeholder="URL изображения" value={createForm.imageUrl} onChange={(e) => setCreateForm(f => ({ ...f, imageUrl: e.target.value }))} />
+                  <Button type="submit" disabled={creating}>{creating ? 'Создание...' : 'Создать'}</Button>
+                </form>
+              )}
+
               {listingsLoading ? (
                 <div className="flex justify-center py-8">
                   <Spinner />
                 </div>
-              ) : myListings.length === 0 ? (
+              ) : myListings.length === 0 && !showCreateForm ? (
                 <div className="text-center py-12 rounded-2xl border border-border bg-surface-2">
                   <span className="text-4xl mb-3 block">🏠</span>
                   <p className="text-muted">У вас пока нет объявлений</p>
+                  <p className="text-sm text-muted mt-1">Нажмите «Создать объявление» выше</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
